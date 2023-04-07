@@ -1,0 +1,13 @@
+[package]
+name = "load-shedding-cal-rs"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+lambda_http = { version = "0.7.3", default-features = false, features = ["apigw_http"] }
+lambda_runtime = "0.7.3"
+scraper = "0.16.0"
+tokio = { version = "1", features = ["macros"] }
+tracing = { version = "0.1", features = ["log"] }
+tracing-subscriber = { version = "0.3", default-features = false, features = ["fmt"] }
+
