@@ -1,4 +1,7 @@
-use lambda_http::{run, service_fn, Body, Error, Request, RequestExt, Response};
+use lambda_http::{run, service_fn, Body, Error, Request, Response};
+
+mod scrape;
+mod timetable;
 
 /// This is the main body for the function.
 /// Write your code inside it.
@@ -6,6 +9,10 @@ use lambda_http::{run, service_fn, Body, Error, Request, RequestExt, Response};
 /// - https://github.com/awslabs/aws-lambda-rust-runtime/tree/main/examples
 async fn function_handler(_event: Request) -> Result<Response<Body>, Error> {
     // Extract some useful information from the request
+
+    // Fetch schedule
+    let schedule = scrape::parse_html(&scrape::get_schedule().await?);
+    println!("{:#?}", schedule);
 
     // Return something that implements IntoResponse.
     // It will be serialized to the right response event automatically by the runtime
