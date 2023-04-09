@@ -3,8 +3,6 @@ use lambda_http::{run, service_fn, Body, Error, Request, RequestExt, Response};
 use anyhow::Result;
 use interval::Interval;
 
-use ical::IcalEventInput;
-
 mod ical;
 mod interval;
 mod scrape;
@@ -23,19 +21,15 @@ async fn get_calendar(zone_id: usize) -> Result<String> {
                         t,
                         interval::interval(load_shed_time.start, load_shed_time.end)?,
                     )?;
-                    Some((start, end, load_shed_time.title()))
+                    Some(ical::event(start, end, &load_shed_time.title()))
                 })
-                .collect::<Vec<IcalEventInput>>()
+                .collect::<Vec<_>>()
         })
         .collect();
 
     Ok(ical::ical(&events))
 }
 
-/// This is the main body for the function.
-/// Write your code inside it.
-/// There are some code example in the following URLs:
-/// - https://github.com/awslabs/aws-lambda-rust-runtime/tree/main/examples
 async fn function_handler(event: Request) -> Result<Response<Body>, Error> {
     Ok(
         match event

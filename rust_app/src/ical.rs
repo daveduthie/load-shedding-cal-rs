@@ -1,8 +1,6 @@
 use time::{format_description, macros::format_description, OffsetDateTime, UtcOffset};
 use uuid::Uuid;
 
-pub type IcalEventInput = (OffsetDateTime, OffsetDateTime, String);
-
 fn format_date_time(date_time: OffsetDateTime) -> String {
     const FMT: &[format_description::FormatItem] =
         format_description!("[year][month][day]T[hour][second]Z");
@@ -36,12 +34,12 @@ pub fn event(start: OffsetDateTime, end: OffsetDateTime, title: &str) -> String 
     s
 }
 
-pub fn ical(events: &[IcalEventInput]) -> String {
+pub fn ical(events: &[String]) -> String {
     let mut s = String::from(
         "BEGIN:VCALENDAR\nVERSION:2.0\nPRODID:-//io.github.daveduthie//load-shedding-calendar//EN",
     );
-    for (start, end, title) in events {
-        s.push_str(&event(*start, *end, title));
+    for event in events {
+        s.push_str(event);
     }
     s.push_str("\nEND:VCALENDAR");
 
