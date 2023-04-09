@@ -1,27 +1,62 @@
-use lambda_http::{run, service_fn, Body, Error, Request, Response};
+use lambda_http::{run, service_fn, Body, Error, Request, RequestExt, Response};
 
+use anyhow::Result;
+use interval::Interval;
+
+use ical::IcalEventInput;
+
+mod ical;
+mod interval;
 mod scrape;
 mod timetable;
+
+async fn get_calendar(zone_id: usize) -> Result<String> {
+    let events: Vec<_> = scrape::schedule()
+        .await?
+        .iter()
+        .flat_map(|load_shed_time| {
+            timetable::timetable_for_stage_and_zone(load_shed_time.stage, zone_id, load_shed_time.start)
+                .into_iter()
+                .filter_map(|t| {
+                    // println!("Do these intersect? {:#?}, {:#?}", load_shed_time, t);
+                    let Interval { start, end } = interval::intersection(
+                        t,
+                        interval::interval(load_shed_time.start, load_shed_time.end)?,
+                    )?;
+                    Some((start, end, load_shed_time.title()))
+                })
+                .collect::<Vec<IcalEventInput>>()
+        })
+        .collect();
+
+    Ok(ical::ical(&events))
+}
 
 /// This is the main body for the function.
 /// Write your code inside it.
 /// There are some code example in the following URLs:
 /// - https://github.com/awslabs/aws-lambda-rust-runtime/tree/main/examples
-async fn function_handler(_event: Request) -> Result<Response<Body>, Error> {
-    // Extract some useful information from the request
-
-    // Fetch schedule
-    let schedule = scrape::parse_html(&scrape::get_schedule().await?);
-    println!("{:#?}", schedule);
-
-    // Return something that implements IntoResponse.
-    // It will be serialized to the right response event automatically by the runtime
-    let resp = Response::builder()
-        .status(200)
-        .header("content-type", "text/html")
-        .body("Hello AWS Lambda HTTP request".into())
-        .map_err(Box::new)?;
-    Ok(resp)
+async fn function_handler(event: Request) -> Result<Response<Body>, Error> {
+    Ok(
+        match event
+            .query_string_parameters()
+            .first("zone_id")
+            .map(|zone_id| zone_id.parse())
+        {
+            Some(Ok(zone_id)) => {
+                let resp = Response::builder()
+                    .status(200)
+                    .header("content-type", "text/calendar")
+                    .body(get_calendar(zone_id).await?.into())
+                    .map_err(Box::new)?;
+                resp
+            }
+            _ => Response::builder()
+                .status(400)
+                .body("Missing or malformed zone_id".into())
+                .expect("failed to render response"),
+        },
+    )
 }
 
 #[tokio::main]

@@ -95,21 +95,38 @@ pub struct LoadShedTime {
     pub start: OffsetDateTime,
     pub end: OffsetDateTime,
     pub stage: usize,
+    pub guess: bool,
 }
 
 impl LoadShedTime {
-    pub fn new(date: Date, stage: usize, start_time: Time, end_time: Time) -> Self {
+    pub fn new(start: OffsetDateTime, end: OffsetDateTime, stage: usize, guess: bool) -> Self {
+        let end = if end <= start {
+            end + Duration::DAY
+        } else {
+            end
+        };
+        Self {
+            start,
+            end,
+            stage,
+            guess,
+        }
+    }
+
+    pub fn from_date_and_times(date: Date, stage: usize, start_time: Time, end_time: Time) -> Self {
         let offset = offset!(+2);
         let start = date.with_time(start_time).assume_offset(offset);
-        let end = if end_time <= start_time {
-            date.with_time(end_time)
-                .assume_offset(offset)
-                .checked_add(Duration::DAY)
-                .expect("Could not increment date")
-        } else {
-            date.with_time(end_time).assume_offset(offset)
-        };
-        Self { start, end, stage }
+        let end = date.with_time(end_time).assume_offset(offset);
+        Self::new(start, end, stage, false)
+    }
+
+    pub fn title(&self) -> String {
+        let mut s = String::new();
+        if self.guess {
+            s.push_str("[?] ")
+        }
+        s.push_str(&format!("Load shedding ({})", self.stage));
+        s
     }
 }
 
@@ -128,7 +145,7 @@ pub fn parse_html(html: &str) -> Vec<LoadShedTime> {
             curr_date = Some(date)
         }
         if let Some((stage, start, end)) = try_parse_time_range(line) {
-            res.push(LoadShedTime::new(
+            res.push(LoadShedTime::from_date_and_times(
                 curr_date.expect("Expected date before time range"),
                 stage,
                 start,
@@ -138,4 +155,36 @@ pub fn parse_html(html: &str) -> Vec<LoadShedTime> {
     }
 
     res
+}
+
+pub async fn schedule() -> Result<Vec<LoadShedTime>> {
+    let mut times = parse_html(&get_schedule().await?);
+    // println!("Times: {:#?}", times);
+
+    if let Some(LoadShedTime {
+        start, end, stage, ..
+    }) = times.last()
+    {
+        let t1 = start.replace_time(Time::MIDNIGHT) + Duration::DAY;
+        let t2 = t1 + Duration::DAY;
+        let t3 = t2 + Duration::DAY;
+        let t4 = t3 + Duration::DAY;
+
+        let midnight = LoadShedTime::new(*end, t1, *stage, true);
+        let next_day = LoadShedTime::new(t2, t2, *stage, true);
+        let day_after = LoadShedTime::new(t3, t3, *stage, true);
+        let day_after_that = LoadShedTime::new(t4, t4, *stage, true);
+
+        // println!(
+        //     "Adding: {:#?}",
+        //     vec![&midnight, &next_day, &day_after, &day_after_that]
+        // );
+
+        times.push(midnight);
+        times.push(next_day);
+        times.push(day_after);
+        times.push(day_after_that);
+    }
+
+    Ok(times)
 }
