@@ -22,7 +22,7 @@ fn initial_zones_for_stage(stage: usize) -> Vec<usize> {
 fn schedule(stage: usize, day_of_month: usize) -> Vec<Vec<usize>> {
     let zone_seq = (1..=16)
         .cycle()
-        .skip((shift(day_of_month) + offset(day_of_month)) as usize);
+        .skip(shift(day_of_month) + offset(day_of_month));
 
     let zone_seqs: Vec<Vec<usize>> = initial_zones_for_stage(stage)
         .iter()
@@ -31,7 +31,7 @@ fn schedule(stage: usize, day_of_month: usize) -> Vec<Vec<usize>> {
 
     let mut result = Vec::new();
 
-    for i in (0..12).into_iter() {
+    for i in 0..12 {
         let mut value: Vec<usize> = zone_seqs.iter().map(|zs| zs[i]).collect();
         value.sort();
         result.push(value)
@@ -66,7 +66,7 @@ mod timetable_tests {
     #[test]
     fn column_tests() {
         assert_eq!(
-            (1..=31).map(|day| column(day)).collect::<Vec<usize>>(),
+            (1..=31).map(column).collect::<Vec<usize>>(),
             vec![
                 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9,
                 10, 11, 12, 13, 14
@@ -77,7 +77,7 @@ mod timetable_tests {
     #[test]
     fn offset_tests() {
         assert_eq!(
-            (1..=31).map(|day| offset(day)).collect::<Vec<usize>>(),
+            (1..=31).map(offset).collect::<Vec<usize>>(),
             vec![
                 0, 12, 24, 36, 48, 60, 72, 84, 96, 108, 120, 132, 144, 156, 168, 180, 0, 12, 24,
                 36, 48, 60, 72, 84, 96, 108, 120, 132, 144, 156, 168
@@ -88,7 +88,7 @@ mod timetable_tests {
     #[test]
     fn shift_tests() {
         assert_eq!(
-            (1..=31).map(|day| shift(day)).collect::<Vec<usize>>(),
+            (1..=31).map(shift).collect::<Vec<usize>>(),
             vec![
                 0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2,
                 3, 3, 3
@@ -100,7 +100,7 @@ mod timetable_tests {
     fn initial_zones_for_stage_tests() {
         assert_eq!(
             (1..=8)
-                .map(|day| initial_zones_for_stage(day))
+                .map(initial_zones_for_stage)
                 .collect::<Vec<Vec<usize>>>(),
             vec![
                 vec![0],

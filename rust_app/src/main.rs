@@ -38,12 +38,12 @@ async fn function_handler(event: Request) -> Result<Response<Body>, Error> {
             .map(|zone_id| zone_id.parse())
         {
             Some(Ok(zone_id)) => {
-                let resp = Response::builder()
+                
+                Response::builder()
                     .status(200)
                     .header("content-type", "text/calendar")
                     .body(get_calendar(zone_id).await?.into())
-                    .map_err(Box::new)?;
-                resp
+                    .map_err(Box::new)?
             }
             _ => Response::builder()
                 .status(400)
