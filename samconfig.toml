@@ -9,6 +9,11 @@ stack_name = "load-shedding-cal-app-rs"
 [default.build.parameters]
 cached = true
 parallel = true
+beta_features = true
+
+[default.sync.parameters]
+beta_features = true
+watch = true
 
 [default.validate.parameters]
 lint = true
@@ -24,9 +29,6 @@ image_repositories = []
 
 [default.package.parameters]
 resolve_s3 = true
-
-[default.sync.parameters]
-watch = true
 
 [default.local_start_api.parameters]
 warm_containers = "EAGER"
