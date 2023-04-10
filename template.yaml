@@ -26,7 +26,7 @@ Resources:
         LoadSheddingCal:
           Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
           Properties:
-            Path: /ical
+            Path: /
             Method: get
 
 Outputs:
@@ -35,7 +35,7 @@ Outputs:
   # https://github.com/awslabs/serverless-application-model/blob/master/docs/internals/generated_resources.rst#api
   LoadSheddingCalApi:
     Description: "API Gateway endpoint URL for Prod stage for Hello World function"
-    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/ical"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/"
   LoadSheddingCalFunction:
     Description: "Hello World Lambda Function ARN"
     Value: !GetAtt LoadSheddingCalFunction.Arn
