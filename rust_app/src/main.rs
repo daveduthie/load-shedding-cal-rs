@@ -1,4 +1,4 @@
-use lambda_http::{run, service_fn, Body, Error, Request, RequestExt, Response};
+use lambda_http::{run, service_fn, Body, Error, Request, RequestExt, Response, aws_lambda_events::serde_json::json};
 
 use anyhow::Result;
 use interval::Interval;
@@ -47,7 +47,7 @@ async fn function_handler(event: Request) -> Result<Response<Body>, Error> {
             }
             _ => Response::builder()
                 .status(400)
-                .body("Missing or malformed zone_id".into())
+                .body(json!({"message": "Missing or malformed zone_id"}).to_string().into())
                 .expect("failed to render response"),
         },
     )
