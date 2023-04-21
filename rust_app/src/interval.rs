@@ -22,20 +22,21 @@ pub fn intersection(interval1: Interval, interval2: Interval) -> Option<Interval
 
 #[cfg(test)]
 mod interval_tests {
-    use time::Duration;
     use super::*;
+    use time::Duration;
 
     fn intvl(now: OffsetDateTime, start_hours: i64, end_hours: i64) -> Interval {
-        interval(now + Duration::hours(start_hours), now + Duration::hours(end_hours)).unwrap()
+        interval(
+            now + Duration::hours(start_hours),
+            now + Duration::hours(end_hours),
+        )
+        .unwrap()
     }
 
     #[test]
     fn interval_tests() {
         let now = OffsetDateTime::now_utc();
-        assert_eq!(
-            intersection(intvl(now, 0, 2), intvl(now, 2, 4)),
-            None
-        );
+        assert_eq!(intersection(intvl(now, 0, 2), intvl(now, 2, 4)), None);
         assert_eq!(
             intersection(intvl(now, 0, 2), intvl(now, 1, 3)),
             Some(intvl(now, 1, 2))

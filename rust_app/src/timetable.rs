@@ -40,7 +40,11 @@ fn schedule(stage: usize, day_of_month: usize) -> Vec<Vec<usize>> {
     result
 }
 
-pub fn timetable_for_stage_and_zone(stage: usize, zone_id: usize, now: OffsetDateTime) -> Vec<Interval> {
+pub fn timetable_for_stage_and_zone(
+    stage: usize,
+    zone_id: usize,
+    now: OffsetDateTime,
+) -> Vec<Interval> {
     let day_of_month = now.day() as usize;
     (0..24)
         .step_by(2)
