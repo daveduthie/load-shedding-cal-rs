@@ -7,6 +7,7 @@ use time::{
     macros::{format_description, offset},
     Date, Duration, Month, OffsetDateTime, Time, UtcOffset,
 };
+use tracing::info;
 
 const URL: &str = "https://www.capetown.gov.za/Family%20and%20home/Residential-utility-services/Residential-electricity-services/Load-shedding-and-outages";
 
@@ -19,7 +20,7 @@ fn now() -> OffsetDateTime {
 }
 
 fn try_parse_date(text: &str) -> Option<Date> {
-    let re = Regex::new(r"(\d{1,2}) (\w+)$").unwrap();
+    let re = Regex::new(r"(\d{1,2}) (\w+)\s*$").unwrap();
     let groups = re.captures(text)?;
     let day = groups.get(1)?.as_str().parse().ok()?;
     let month = Month::from_str(groups.get(2)?.as_str()).ok()?;
@@ -142,9 +143,11 @@ pub fn parse_html(html: &str) -> Vec<LoadShedTime> {
         .text()
     {
         if let Some(date) = try_parse_date(line) {
+            info!(date = date.to_string(), "Found date");
             curr_date = Some(date)
         }
         if let Some((stage, start, end)) = try_parse_time_range(line) {
+            info!(stage = stage, start = start.to_string(), end = end.to_string(), "Found time range");
             res.push(LoadShedTime::from_date_and_times(
                 curr_date.expect("Expected date before time range"),
                 stage,
@@ -159,7 +162,6 @@ pub fn parse_html(html: &str) -> Vec<LoadShedTime> {
 
 pub async fn schedule() -> Result<Vec<LoadShedTime>> {
     let mut times = parse_html(&get_schedule().await?);
-    // println!("Times: {:#?}", times);
 
     if let Some(LoadShedTime {
         start, end, stage, ..
@@ -174,11 +176,6 @@ pub async fn schedule() -> Result<Vec<LoadShedTime>> {
         let next_day = LoadShedTime::new(t2, t2, *stage, true);
         let day_after = LoadShedTime::new(t3, t3, *stage, true);
         let day_after_that = LoadShedTime::new(t4, t4, *stage, true);
-
-        // println!(
-        //     "Adding: {:#?}",
-        //     vec![&midnight, &next_day, &day_after, &day_after_that]
-        // );
 
         times.push(midnight);
         times.push(next_day);

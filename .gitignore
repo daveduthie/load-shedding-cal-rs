@@ -1,2 +1,3 @@
 rust_app/target
 .aws-sam
+.idea
