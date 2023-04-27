@@ -45,19 +45,22 @@ pub fn timetable_for_stage_and_zone(
     zone_id: usize,
     now: OffsetDateTime,
 ) -> Vec<Interval> {
-    let day_of_month = now.day() as usize;
-    (0..24)
-        .step_by(2)
-        .zip(schedule(stage, day_of_month))
-        .filter_map(|(hour, zones)| {
-            if zones.contains(&zone_id) {
-                let start = now.replace_time(Time::from_hms(hour, 0, 0).unwrap());
-                let end = start + Duration::hours(2) + Duration::minutes(30);
-                interval::interval(start, end)
-            } else {
-                None
-            }
-        })
+    let timetable_for_date = |now: OffsetDateTime| {
+        (0..24)
+            .step_by(2)
+            .zip(schedule(stage, now.day() as usize))
+            .filter_map(move |(hour, zones)| {
+                if zones.contains(&zone_id) {
+                    let start = now.replace_time(Time::from_hms(hour, 0, 0).unwrap());
+                    let end = start + Duration::hours(2) + Duration::minutes(30);
+                    interval::interval(start, end)
+                } else {
+                    None
+                }
+            })
+    };
+    timetable_for_date(now)
+        .chain(timetable_for_date(now + Duration::DAY))
         .collect()
 }
 
@@ -148,13 +151,23 @@ mod timetable_tests {
             timetable,
             vec![
                 interval::interval(
-                    now.replace_time(Time::from_hms(0, 0, 0).unwrap()),
-                    now.replace_time(Time::from_hms(2, 30, 0).unwrap())
+                    now.replace_time(Time::from_hms(14, 0, 0).unwrap()),
+                    now.replace_time(Time::from_hms(16, 30, 0).unwrap())
                 )
                 .unwrap(),
                 interval::interval(
-                    now.replace_time(Time::from_hms(8, 0, 0).unwrap()),
-                    now.replace_time(Time::from_hms(10, 30, 0).unwrap())
+                    now.replace_time(Time::from_hms(22, 0, 0).unwrap()),
+                    now.replace_time(Time::from_hms(0, 30, 0).unwrap()) + Duration::DAY
+                )
+                .unwrap(),
+                interval::interval(
+                    now.replace_time(Time::from_hms(6, 0, 0).unwrap()) + Duration::DAY,
+                    now.replace_time(Time::from_hms(8, 30, 0).unwrap()) + Duration::DAY
+                )
+                .unwrap(),
+                interval::interval(
+                    now.replace_time(Time::from_hms(22, 0, 0).unwrap()) + Duration::DAY,
+                    now.replace_time(Time::from_hms(0, 30, 0).unwrap()) + Duration::days(2)
                 )
                 .unwrap(),
             ]
