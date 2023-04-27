@@ -147,7 +147,12 @@ pub fn parse_html(html: &str) -> Vec<LoadShedTime> {
             curr_date = Some(date)
         }
         if let Some((stage, start, end)) = try_parse_time_range(line) {
-            info!(stage = stage, start = start.to_string(), end = end.to_string(), "Found time range");
+            info!(
+                stage = stage,
+                start = start.to_string(),
+                end = end.to_string(),
+                "Found time range"
+            );
             res.push(LoadShedTime::from_date_and_times(
                 curr_date.expect("Expected date before time range"),
                 stage,

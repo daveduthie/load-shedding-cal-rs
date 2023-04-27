@@ -5,6 +5,7 @@ use lambda_http::{
 
 use anyhow::Result;
 use interval::Interval;
+use tracing::info;
 
 mod ical;
 mod interval;
@@ -23,7 +24,7 @@ async fn get_calendar(zone_id: usize) -> Result<String> {
             )
             .into_iter()
             .filter_map(|t| {
-                // println!("Do these intersect? {:#?}, {:#?}", load_shed_time, t);
+                info!("Do these intersect? {:#?}, {:#?}", load_shed_time, t);
                 let Interval { start, end } = interval::intersection(
                     t,
                     interval::interval(load_shed_time.start, load_shed_time.end)?,
