@@ -143,6 +143,7 @@ mod timetable_tests {
         )
     }
 
+    // TODO: check if this is actually correct
     #[test]
     fn timetable_for_zone_tests() {
         let now = OffsetDateTime::now_utc().to_offset(offset!(+2));
@@ -151,8 +152,8 @@ mod timetable_tests {
             timetable,
             vec![
                 interval::interval(
-                    now.replace_time(Time::from_hms(14, 0, 0).unwrap()),
-                    now.replace_time(Time::from_hms(16, 30, 0).unwrap())
+                    now.replace_time(Time::from_hms(6, 0, 0).unwrap()),
+                    now.replace_time(Time::from_hms(8, 30, 0).unwrap())
                 )
                 .unwrap(),
                 interval::interval(
@@ -161,13 +162,13 @@ mod timetable_tests {
                 )
                 .unwrap(),
                 interval::interval(
-                    now.replace_time(Time::from_hms(6, 0, 0).unwrap()) + Duration::DAY,
-                    now.replace_time(Time::from_hms(8, 30, 0).unwrap()) + Duration::DAY
+                    now.replace_time(Time::from_hms(4, 0, 0).unwrap()) + Duration::DAY,
+                    now.replace_time(Time::from_hms(6, 30, 0).unwrap()) + Duration::DAY
                 )
                 .unwrap(),
                 interval::interval(
-                    now.replace_time(Time::from_hms(22, 0, 0).unwrap()) + Duration::DAY,
-                    now.replace_time(Time::from_hms(0, 30, 0).unwrap()) + Duration::days(2)
+                    now.replace_time(Time::from_hms(12, 0, 0).unwrap()) + Duration::DAY,
+                    now.replace_time(Time::from_hms(14, 30, 0).unwrap()) + Duration::DAY
                 )
                 .unwrap(),
             ]

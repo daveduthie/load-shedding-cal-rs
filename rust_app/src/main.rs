@@ -1,10 +1,8 @@
-use lambda_http::{
-    aws_lambda_events::serde_json::json, run, service_fn, Body, Error, Request, RequestExt,
-    Response,
-};
-
 use anyhow::Result;
+use console_subscriber;
 use interval::Interval;
+use lambda_http::{run, service_fn, Body, Error, Request, RequestExt, Response};
+use serde_json::json;
 use tracing::info;
 
 mod ical;
@@ -19,7 +17,7 @@ async fn get_calendar(zone_id: usize) -> Result<String> {
         .flat_map(|load_shed_time| {
             timetable::timetable_for_stage_and_zone(
                 load_shed_time.stage,
-                zone_id,
+		zone_id,
                 load_shed_time.start,
             )
             .into_iter()
@@ -64,13 +62,14 @@ async fn function_handler(event: Request) -> Result<Response<Body>, Error> {
 
 #[tokio::main]
 async fn main() -> Result<(), Error> {
-    tracing_subscriber::fmt()
-        .with_max_level(tracing::Level::INFO)
-        // disable printing the name of the module in every log line.
-        .with_target(false)
-        // disabling time is handy because CloudWatch will add the ingestion time.
-        .without_time()
-        .init();
+    console_subscriber::init();
+    // tracing_subscriber::fmt()
+    //     .with_max_level(tracing::Level::INFO)
+    //     // disable printing the name of the module in every log line.
+    //     .with_target(false)
+    //     // disabling time is handy because CloudWatch will add the ingestion time.
+    //     .without_time()
+    //     .init();
 
     run(service_fn(function_handler)).await
 }
